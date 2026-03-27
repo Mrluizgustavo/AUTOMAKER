@@ -299,9 +299,8 @@ def tela_excel_despesa(root):
             
             try:
                 
-                from despesas.main import iniciar_processamento
+                from services.despesas.main import iniciar_processamento
                 
-              
                 iniciar_processamento(arq)
                 
                 messagebox.showinfo("Sucesso", "Processamento concluído!")

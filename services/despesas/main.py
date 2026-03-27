@@ -4,8 +4,8 @@ import sys
 # Garante que o Python encontre os módulos internos de despesas
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from despesas.services import processador
-from despesas.services import reporter
+from services.despesas.services import processador
+from services.despesas.services import reporter
 
 
 
