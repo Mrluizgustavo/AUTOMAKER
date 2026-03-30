@@ -200,7 +200,7 @@ def preencher_dados(ws, dados,  col):
 
     ws[f'{col}6'] = locale.currency(dados['bruto_real'], grouping=True)
     ws[f'{col}8'] = locale.currency((dados['inss_planilha_custos'] + dados['inss_ferias']), grouping=True)
-    ws[f'{col}10'] = locale.currency(dados['qtde_func'] , grouping=True)
+    ws[f'{col}10'] = dados['qtde_func']
     ws[f'{col}11'] = locale.currency(dados['rescisao_total'], grouping=True)
     ws[f'{col}12'] = 'Qtde'
     ws[f'{col_prox}12'] = dados['qtde_func_vt']
@@ -220,8 +220,12 @@ def preencher_dados(ws, dados,  col):
         dados['valor_horas_extras_60'] + dados['valor_horas_extras_100_com_dsr'],
         grouping=True
     )
-    ws[f'{col}20'] = locale.currency((dados['valor_convenio_planilha_custos'] + dados['convenio_ferias']), grouping=True)
+    ws[f'{col}20'] = locale.currency(dados['valor_convenio_planilha_custos'], grouping=True)
+    ws[f'{col}21'] = locale.currency(dados['convenio_ferias'], grouping=True)
+
     ws[f'{col}22'] = locale.currency(dados['valor_ferias'], grouping=True)
+    ws[f'{col}24'] = locale.currency(dados['valor_uniforme'], grouping=True)
+    ws[f'{col}25'] = locale.currency(dados['valor_materiais'], grouping=True)
 
 def aplicar_estilo_coluna_mes(ws, col):
 

@@ -10,6 +10,9 @@ CAMINHO_CUSTOS   = r'G:\LUIZ GUSTAVO\CÓPIA - Projeto nova Planilha de custo --2
 CAMINHO_RESCISAO = r'G:\Despesas\Rescisão\Rescisões.xlsx'
 CAMINHO_VT       = r'G:\Despesas\Vale Transporte\DESPESAS VT.xlsx'
 CAMINHO_FERIAS   = r'G:\Despesas\Mercado - Planilha de férias (ATUAL).xlsx'
+CAMINHO_ALMOXARIFADO   = r'G:\GASTOS\GASTOS.xlsx'
+
+
 
 
 def iniciar_processamento(caminho_excel: str):
@@ -19,14 +22,22 @@ def iniciar_processamento(caminho_excel: str):
         df_custos   = processador.buscar_dados(caminho_excel)
         df_rescisao = processador.buscar_dados(CAMINHO_RESCISAO, aba="Valores rescisões")
         df_VT       = processador.buscar_dados(CAMINHO_VT)
-        df_ferias   = processador.buscar_dados_ferias(CAMINHO_FERIAS)  # carrega tudo de uma vez
-
-        dados_totais = processador.group_SUM_values(df_custos, df_rescisao, df_VT, df_ferias)
+        df_ferias   = processador.buscar_dados_ferias(CAMINHO_FERIAS, caminho_custos=caminho_excel)  # carrega tudo + reatribui ADMs
+        df_uniforme  = processador.buscar_dados(CAMINHO_ALMOXARIFADO, aba="Envio uniforme", header=1)
+        df_materiais = processador.buscar_dados(CAMINHO_ALMOXARIFADO, aba="Envio de materiais", header=1)
+        dados_totais = processador.group_SUM_values(df_custos, df_rescisao, df_VT, df_ferias, df_uniforme, df_materiais)
+        
+        # --- INÍCIO DEBUG ---
+        print("\n[DEBUG MATERIAIS]")
+        print(f"Colunas encontradas: {df_materiais.columns.tolist()}")
+        if not df_materiais.empty and 'DATA' in df_materiais.columns.astype(str).str.strip().str.upper():
+             print(f"Total de linhas lidas: {len(df_materiais)}")
+        # --- FIM DEBUG ---
 
         mes = dados_totais['mes']
         ano = dados_totais['ano']
 
-        dados_loja = processador.group_LOJAS_values(df_custos, df_rescisao, df_VT, df_ferias, mes, ano)
+        dados_loja = processador.group_LOJAS_values(df_custos, df_rescisao, df_VT, df_ferias,df_uniforme, df_materiais, mes, ano)
 
         reporter.gerar_relatorio(dados_totais, mes, ano, aba_nome="TOTAL GERAL")
 
