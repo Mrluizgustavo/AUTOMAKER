@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox, ttk
 import sys
 import os
 
-from services.dashboard_despesas import tela_dashboard_despesas, tela_excel_despesa
+from services.despesas.services.dashboard_despesas import tela_dashboard_despesas, tela_excel_despesa
 
 from services import ui_theme
 

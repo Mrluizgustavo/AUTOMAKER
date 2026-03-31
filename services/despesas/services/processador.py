@@ -13,6 +13,7 @@ MAPA_COLUNAS_FERIAS = {
     'LOJAS': 'LOJA',
     '1098': 'INSS'
 }
+
 CODIGOS_CONVENIO = ['1169', '1251', '1204', '1009', '14']
 LOJAS_IGNORADAS = {'CHEGUEI BRASIL', 'ETI', 'PADARIA'}
 
@@ -58,10 +59,30 @@ def buscar_dados_ferias(caminho, caminho_custos=None):
                 df = pd.read_excel(xls, sheet_name=aba, header=0)
                 df.columns = df.columns.astype(str).str.strip().str.upper()
 
-                # CORREÇÃO CRUCIAL: Padroniza o nome da coluna de filial
-                if 'LOJAS' in df.columns:
-                    df.rename(columns={'LOJAS': 'LOJA'}, inplace=True)
+                # --- RESGATE DE CABEÇALHOS PERDIDOS ---
+                if not df.empty:
+                    cols_para_resgatar = ['SOMA BRUTO', 'LOJAS', 'LOJA', 'DATA', 'PAGAMENTO', 'NOME', 'CHAPA', 'FILIAL']
+                    for col in df.columns:
+                        val_linha0 = str(df[col].iloc[0]).strip().upper()
+                        
+                        if val_linha0 in cols_para_resgatar:
+                            if val_linha0 in df.columns and col != val_linha0:
+                                df = df.drop(columns=[val_linha0])
+                            df.rename(columns={col: val_linha0}, inplace=True)
+                # ----------------------------------------
+
+                # Padronizações conhecidas de Loja
+                for variacao in ['LOJAS', 'LOCAL', 'FILIAL', 'CODFILIAL', 'DESTINO']:
+                    if variacao in df.columns:
+                        df.rename(columns={variacao: 'LOJA'}, inplace=True)
+
+                # PLANO B (Força Bruta): Se a pessoa deixou o título da Loja em branco no Excel
+                if 'LOJA' not in df.columns and 'UNNAMED: 0' in df.columns:
+                    df.rename(columns={'UNNAMED: 0': 'LOJA'}, inplace=True)
                 
+                # PLANO B: Força a coluna 3 a ser o Nome (necessário para separar os ADMs)
+                if 'NOME' not in df.columns and 'UNNAMED: 2' in df.columns:
+                    df.rename(columns={'UNNAMED: 2': 'NOME'}, inplace=True)
 
                 col_data = 'DATA' if 'DATA' in df.columns else 'PAGAMENTO'
                 
@@ -276,11 +297,13 @@ def get_dados_planilha_ferias(df_ferias, mes, ano):
         (df_ferias['PAGAMENTO_REF'].dt.year  == num_ano)
     ].copy()
 
-    # Busca as colunas bases diretamente pelo nome da linha 1
+    if df_filtrado.empty:
+        return {'valor_ferias': 0.0, 'inss_ferias': 0.0, 'convenio_ferias': 0.0}
+
+
     total = pd.to_numeric(df_filtrado['SOMA BRUTO'], errors='coerce').sum()
     inss  = _soma_coluna(df_filtrado, 'INSS')
 
-    # LÓGICA DINÂMICA: Pega tudo que tiver MÉDICO ou ODONTO no título
     cols_convenio = [col for col in df_filtrado.columns if 'MÉDICO' in col or 'ODONTO' in col]
     convenio = sum(_soma_coluna(df_filtrado, col) for col in cols_convenio)
 
@@ -372,6 +395,8 @@ def get_dados_gastos_almoxarifado_por_loja(df_almoxarifado, mes, ano, chave_reto
 
     return pd.DataFrame(resultado)
 
+
+
 # ==============================================================================
 # AGRUPAMENTOS
 # ==============================================================================
@@ -386,6 +411,9 @@ def _tratar_loja_almoxarifado(val):
         return float(val_str) if '.' in val_str else int(val_str)
     
     return 'ADM'
+
+
+
 
 def group_SUM_values(planilha_custo, planilha_rescisoes, planilha_VT, df_ferias, df_uniforme, df_materiais):
     custos   = get_dados_planilha_custos(planilha_custo)
@@ -422,7 +450,7 @@ def group_LOJAS_values(planilha_custo, planilha_rescisoes, planilha_VT, df_feria
         if col in df.columns and not df.empty:
             df[col] = _normalizar_coluna_loja(df[col])
 
-    # LEFT merge: ancora no df de custos e remove a coluna 'LOJA' para evitar colisão de sufixos
+   
     df = pd.merge(custos, rescisao, left_on='RATEIO', right_on='LOJA', how='left')
     if 'LOJA' in df.columns: df.drop(columns=['LOJA'], inplace=True)
 

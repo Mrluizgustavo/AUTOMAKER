@@ -220,8 +220,7 @@ def preencher_dados(ws, dados,  col):
         dados['valor_horas_extras_60'] + dados['valor_horas_extras_100_com_dsr'],
         grouping=True
     )
-    ws[f'{col}20'] = locale.currency(dados['valor_convenio_planilha_custos'], grouping=True)
-    ws[f'{col}21'] = locale.currency(dados['convenio_ferias'], grouping=True)
+    ws[f'{col}20'] = locale.currency((dados['valor_convenio_planilha_custos'] + dados['convenio_ferias']), grouping=True)
 
     ws[f'{col}22'] = locale.currency(dados['valor_ferias'], grouping=True)
     ws[f'{col}24'] = locale.currency(dados['valor_uniforme'], grouping=True)
