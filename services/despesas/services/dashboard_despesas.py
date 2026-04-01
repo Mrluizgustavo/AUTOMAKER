@@ -261,27 +261,32 @@ def _scroll_window(win):
     outer.pack(fill="both", expand=True)
     
     cs = tk.Canvas(outer, bg=BG, highlightthickness=0)
-    sb = ttk.Scrollbar(outer, orient="vertical", command=cs.yview)
-    cs.configure(yscrollcommand=sb.set)
-    
-    sb.pack(side="right", fill="y")
     cs.pack(side="left", fill="both", expand=True)
     
     inner = tk.Frame(cs, bg=BG)
-    
     frame_id = cs.create_window((0, 0), window=inner, anchor="nw")
     
     inner.bind("<Configure>", lambda e: cs.configure(scrollregion=cs.bbox("all")))
-    
     cs.bind("<Configure>", lambda e: cs.itemconfig(frame_id, width=e.width))
-    
-    cs.bind_all("<MouseWheel>", lambda e: cs.yview_scroll(int(-1 * (e.delta / 120)), "units"))
+        
+    def _on_mousewheel(e):
+        cs.yview_scroll(int(-1 * (e.delta / 120)), "units")
+        
+    def _bind_scroll(e):
+        cs.bind_all("<MouseWheel>", _on_mousewheel)
+        
+    def _unbind_scroll(e):
+        cs.unbind_all("<MouseWheel>")
+        
+    # Ativa o scroll apenas com o mouse sobre o canvas
+    cs.bind("<Enter>", _bind_scroll)
+    cs.bind("<Leave>", _unbind_scroll)
     
     return inner
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DASHBOARD PRINCIPAL — aba única com layout mix
+# DASHBOARD PRINCIPAL 
 # ══════════════════════════════════════════════════════════════════════════════
 def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
     try:
@@ -296,6 +301,9 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
     win.title(f"Dashboard — {aba_nome}")
     win.configure(bg=BG)
     win.geometry("1440x920")
+
+    #RASTREIA O MÊS EXIBIDO ATUALMENTE
+    indice_mes = tk.IntVar(value=len(dados) - 1) # Começa no último mês
 
     tk.Frame(win, bg=cor, height=5).pack(fill="x")
     top = tk.Frame(win, bg=BG)
@@ -328,6 +336,7 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
     ]
     chips_row = tk.Frame(inner, bg=BG)
     chips_row.pack(fill="x", padx=16, pady=(10, 4))
+
     for label, valor, clr in kpis_chips:
         chip = tk.Frame(chips_row, bg=SURFACE, padx=16, pady=12)
         chip.pack(side="left", fill="x", expand=True, padx=6)
@@ -345,6 +354,7 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
     c1a = _card_frame(row1, "1. Visão Executiva da Folha",
                       "Salários + Benefícios + Variáveis + Adm por período", COLORS[0])
     c1a.pack(side="left", fill="both", expand=True, padx=(0, 6))
+
 
     def kpi_visao_exec():
         salarios   = [d.get("bruto", 0) + d.get("impostos", 0) for d in dados]
@@ -376,13 +386,57 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
 
     kpi_visao_exec()
 
-    c1b = _card_frame(row1, "2. Composição — Último Mês",
-                      f"Rosca com proporção de cada bloco — {meses[-1]}", COLORS[2])
+
+
+    c1b = tk.Frame(row1, bg=SURFACE)
     c1b.pack(side="left", fill="both", expand=True)
 
+    frame_header = tk.Frame(c1b, bg=SURFACE, padx=14, pady=10)
+    frame_header.pack(fill="x", side="top")
+
+    lbl_titulo_rosca = tk.Label(frame_header, text="2. Composição", font=FONT_HEAD, bg=SURFACE, fg=TEXT)
+    lbl_titulo_rosca.pack(anchor="w")
+
+    lbl_subtitulo_rosca = tk.Label(frame_header, text="Salário Bruto + Impostos + Variáveis + Benefícios do último mês", font=FONT_SMALL, bg=SURFACE, fg=TEXT_SUB)
+    lbl_subtitulo_rosca.pack(anchor="w")
+
+    tk.Frame(c1b, bg=COLORS[2], height=2).pack(fill="x", side="top")
+
+    frame_intermediario = tk.Frame(c1b, bg=SURFACE)
+    frame_intermediario.pack(fill="both", pady=8, side="top")
+
+    btn_prev = tk.Button(frame_intermediario, text=" ← ", font=FONT_SMALL, bg=SURFACE2, fg=TEXT,
+                        relief="flat", cursor="hand2", command=lambda: mudar_mes(-1),
+                        padx=8, pady=4)
+    btn_prev.pack(side="left")
+    btn_next = tk.Button(frame_intermediario, text=" → ", font=FONT_SMALL, bg=SURFACE2, fg=TEXT,
+                         relief="flat", cursor="hand2", command=lambda: mudar_mes(1),
+                         padx=8, pady=4)
+    btn_next.pack(side="right")
+
+    frame_canvas = tk.Frame(frame_intermediario, bg=SURFACE)
+    frame_canvas.pack(fill="both", expand=True, side="top")
+
+
+
+    def mudar_mes(direcao):
+        
+        novo_indice = indice_mes.get() + direcao
+
+        if (novo_indice >= 0) and (novo_indice < len(dados)):
+            indice_mes.set(novo_indice)
+            kpi_rosca()
+        
+        
 
     def kpi_rosca():
-        ul = dados[-1]
+
+        for widget in frame_canvas.winfo_children():
+            widget.destroy()    
+        
+        lbl_subtitulo_rosca.config(text=f"Composição do mês de {dados[indice_mes.get()]['mes']}")
+        ul = dados[indice_mes.get()]
+
         labels = ["Sal. Bruto", "Rescisões", "Férias", "HE", "Convênio", "VT", "Adm"]
         valores = [
             ul.get("bruto", 0), ul.get("rescisao", 0), ul.get("ferias", 0),
@@ -403,7 +457,7 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
                   fontsize=7, loc="lower center", bbox_to_anchor=(0.5, -0.18),
                   facecolor=BG_M, edgecolor=BG_M, labelcolor=FG_M, ncol=2)
         fig.tight_layout(pad=1.2)
-        _embed(fig, c1b, plt)
+        _embed(fig, frame_canvas, plt)
 
     kpi_rosca()
 
@@ -712,6 +766,9 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
              text=f"Fonte: {os.path.basename(caminho_arq)}  •  Aba: {aba_nome}  •  {len(meses)} período(s)",
              font=FONT_SMALL, bg=BG, fg=TEXT_SUB).pack(side="left")
 
+
+
+    
 
 # ══════════════════════════════════════════════════════════════════════════════
 # COMPARATIVO POR LOJA

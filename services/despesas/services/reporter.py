@@ -27,10 +27,10 @@ def aplicar_borda(ws, min_row, max_row, min_col, max_col):
                 bottom=medium if cell.row == max_row else thin
             )
 
-def criar_layout(ws):
+def criar_layout(ws,ano):
     # TÍTULO
     ws.merge_cells('A1:J1')
-    ws['A1'] = 'DESPESAS DEPTO PESSOAL - 2026 GRUPO PARANÁ'
+    ws['A1'] = f'DESPESAS DEPTO PESSOAL - {ano} GRUPO PARANÁ'
     ws['A1'].font = Font(size=17, bold=True)
     
 
@@ -190,7 +190,7 @@ def preencher_dados(ws, dados,  col):
 
     col_idx = column_index_from_string(col)
     col_prox = get_column_letter(col_idx + 1)
-
+    
     for i in range(5, 27):
 
         if i in (12,16,17,18,19):
@@ -198,34 +198,42 @@ def preencher_dados(ws, dados,  col):
         else: 
             ws.merge_cells(f'{col}{i}:{col_prox}{i}')
 
-    ws[f'{col}6'] = locale.currency(dados['bruto_real'], grouping=True)
-    ws[f'{col}8'] = locale.currency((dados['inss_planilha_custos'] + dados['inss_ferias']), grouping=True)
-    ws[f'{col}10'] = dados['qtde_func']
-    ws[f'{col}11'] = locale.currency(dados['rescisao_total'], grouping=True)
+    total_impostos = dados.get('FGTS', 0.0) + dados.get('FGTS APRENDIZES', 0.0) + dados.get('GPS', 0.0)
+    desc_func = (dados.get('inss_planilha_custos', 0.0) + dados.get('inss_ferias', 0.0))
+
+    bruto_real = dados.get('bruto_real', 0.0)
+
+    salario = bruto_real + total_impostos - desc_func
+
+    ws[f'{col}5'] = locale.currency(salario, grouping=True)
+    ws[f'{col}6'] = locale.currency(bruto_real, grouping=True)
+    ws[f'{col}7'] = locale.currency(total_impostos, grouping=True)
+    ws[f'{col}8'] = locale.currency((dados.get('inss_planilha_custos', 0.0) + dados.get('inss_ferias', 0.0)), grouping=True)
+    ws[f'{col}10'] = dados.get('qtde_func', 0)
+    ws[f'{col}11'] = locale.currency(dados.get('rescisao_total', 0.0), grouping=True)
     ws[f'{col}12'] = 'Qtde'
-    ws[f'{col_prox}12'] = dados['qtde_func_vt']
-    ws[f'{col}13'] = locale.currency(dados['valor_vt'] , grouping=True)
-    ws[f'{col}14'] = locale.currency(dados['vt_desc_func'], grouping=True)
-    ws[f'{col}15'] = locale.currency(dados['refeicoes_desc_func'], grouping=True)
+    ws[f'{col_prox}12'] = dados.get('qtde_func_vt', 0)
+    ws[f'{col}13'] = locale.currency(dados.get('valor_vt', 0.0), grouping=True)
+    ws[f'{col}14'] = locale.currency(dados.get('vt_desc_func', 0.0), grouping=True)
+    ws[f'{col}15'] = locale.currency(dados.get('refeicoes_desc_func', 0.0), grouping=True)
     ws[f'{col}16'] = 'Qtde'
     ws[f'{col_prox}16'] = 'Valor'
 
     # HORAS EXTRAS
-    ws[f'{col}17'] = dados['quant_horas_extras_60']
-    ws[f'{col_prox}17'] = locale.currency(dados['valor_horas_extras_60'], grouping=True)
-    ws[f'{col}18'] = dados['quant_horas_extras_100']
-    ws[f'{col_prox}18'] = locale.currency(dados['valor_horas_extras_100_com_dsr'], grouping=True)
-    ws[f'{col}19'] = (dados['quant_horas_extras_60'] + dados['quant_horas_extras_100'])
+    ws[f'{col}17'] = dados.get('quant_horas_extras_60', 0)
+    ws[f'{col_prox}17'] = locale.currency(dados.get('valor_horas_extras_60', 0.0), grouping=True)
+    ws[f'{col}18'] = dados.get('quant_horas_extras_100', 0)
+    ws[f'{col_prox}18'] = locale.currency(dados.get('valor_horas_extras_100_com_dsr', 0.0), grouping=True)
+    ws[f'{col}19'] = (dados.get('quant_horas_extras_60', 0) + dados.get('quant_horas_extras_100', 0))
     ws[f'{col_prox}19'] = locale.currency(
-        dados['valor_horas_extras_60'] + dados['valor_horas_extras_100_com_dsr'],
+        dados.get('valor_horas_extras_60', 0.0) + dados.get('valor_horas_extras_100_com_dsr', 0.0),
         grouping=True
     )
-    ws[f'{col}20'] = locale.currency((dados['valor_convenio_planilha_custos'] + dados['convenio_ferias']), grouping=True)
+    ws[f'{col}20'] = locale.currency((dados.get('valor_convenio_planilha_custos', 0.0) + dados.get('convenio_ferias', 0.0)), grouping=True)
 
-    ws[f'{col}22'] = locale.currency(dados['valor_ferias'], grouping=True)
-    ws[f'{col}24'] = locale.currency(dados['valor_uniforme'], grouping=True)
-    ws[f'{col}25'] = locale.currency(dados['valor_materiais'], grouping=True)
-
+    ws[f'{col}22'] = locale.currency(dados.get('valor_ferias', 0.0), grouping=True)
+    ws[f'{col}24'] = locale.currency(dados.get('valor_uniforme', 0.0), grouping=True)
+    ws[f'{col}25'] = locale.currency(dados.get('valor_materiais', 0.0), grouping=True)
 def aplicar_estilo_coluna_mes(ws, col):
 
     col_prox = col + 1
@@ -237,23 +245,31 @@ def aplicar_estilo_coluna_mes(ws, col):
 
 def gerar_relatorio(dados, mes, ano, aba_nome="TOTAL GERAL"):
 
+    PASTA_DESTINO = rf'G:\Despesas\Relatório mensais {ano}'
     ARQUIVO = f"RELATÓRIO DESPESAS REDE PARANÁ - {ano}.xlsx"
 
+    if not os.path.exists(PASTA_DESTINO):
+        os.makedirs(PASTA_DESTINO)
+
+
+    CAMINHO_COMPLETO = os.path.join(PASTA_DESTINO, ARQUIVO)
+
     # 1. ABRIR OU CRIAR O ARQUIVO
-    if not os.path.exists(ARQUIVO):
+    if not os.path.exists(CAMINHO_COMPLETO):
         wb = Workbook()
         ws = wb.active
         ws.title = aba_nome
-        criar_layout(ws)
+        criar_layout(ws,ano)
     else:
-        wb = load_workbook(ARQUIVO)
+        
+        wb = load_workbook(CAMINHO_COMPLETO)
         
         # 2. VERIFICAR SE A ABA EXISTE
         if aba_nome in wb.sheetnames:
             ws = wb[aba_nome]
         else:
             ws = wb.create_sheet(title=aba_nome)
-            criar_layout(ws)
+            criar_layout(ws,ano)
 
     # 3. NOVA COLUNA
     col_index = pegar_proxima_coluna(mes)
@@ -269,4 +285,4 @@ def gerar_relatorio(dados, mes, ano, aba_nome="TOTAL GERAL"):
     preencher_dados(ws, dados, col_letra)
     aplicar_estilo_coluna_mes(ws, col_index)
 
-    wb.save(ARQUIVO)
+    wb.save(CAMINHO_COMPLETO)

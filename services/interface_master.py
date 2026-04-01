@@ -57,8 +57,6 @@ def tela_menu_principal(root):
              font=ui_theme.FONT_BODY, bg=ui_theme.BG, fg=ui_theme.TEXT_SUB).pack(anchor="w", padx=30, pady=(4, 18))
 
     # ── Grid de cards ──
-
-
     
     automacoes = [
         ("📊", "Relatório Despesas",  "Simplificação e montagem de relatório",ui_theme.ACCENT, tela_excel_despesa),
@@ -94,6 +92,7 @@ def tela_menu_principal(root):
                  justify="left", anchor="w").pack(fill="x")
 
         fn = tela_fn
+        
         btn = tk.Button(
             inner, text="Abrir  →",
             bg=cor, fg=ui_theme.TEXT,

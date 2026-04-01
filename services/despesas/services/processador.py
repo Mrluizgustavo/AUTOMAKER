@@ -14,6 +14,7 @@ MAPA_COLUNAS_FERIAS = {
     '1098': 'INSS'
 }
 
+
 CODIGOS_CONVENIO = ['1169', '1251', '1204', '1009', '14']
 LOJAS_IGNORADAS = {'CHEGUEI BRASIL', 'ETI', 'PADARIA'}
 
@@ -102,6 +103,33 @@ def buscar_dados_ferias(caminho, caminho_custos=None):
 
             except Exception as e:
                 print(f"[férias] Aba '{aba}' ignorada: {e}")
+
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+def buscar_dados_vt(caminho):
+    with pd.ExcelFile(caminho) as xls:
+        frames = []
+        for aba in xls.sheet_names:
+            try:
+                df = pd.read_excel(xls, sheet_name=aba, header=0)
+                df.columns = df.columns.astype(str).str.strip().str.upper()
+
+                nome_padrao_colunas = {'LOJA', 'VALOR', 'DATA'}
+                for col in nome_padrao_colunas:
+                    if col not in df.columns:
+                        raise ValueError(f"Coluna '{col}' não encontrada na aba '{aba}'.")
+
+                
+                df['DATA'] = pd.to_datetime(df['DATA'], errors='coerce', format='mixed')
+                df = df[df['DATA'].notna()].copy()
+
+                if df.empty:
+                    continue
+
+                frames.append(df)
+
+            except Exception as e:
+                print(f"[VT] Aba '{aba}' ignorada: {e}")  # ✅ mensagem correta também
 
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
@@ -268,6 +296,7 @@ def get_dados_planilha_VT(df_vt, mes, ano):
 
 
 def get_dados_planilha_VT_por_loja(df_vt, mes, ano):
+    
     df = df_vt[~df_vt['LOJA'].isin(LOJAS_IGNORADAS)].copy()
     df = df[df['LOJA'].notna()].copy()
     df['LOJA'] = _normalizar_coluna_loja(df['LOJA'])
@@ -397,6 +426,53 @@ def get_dados_gastos_almoxarifado_por_loja(df_almoxarifado, mes, ano, chave_reto
 
 
 
+def get_dados_planilha_imposto(caminho, mes, ano):
+    num_mes = str(MESES[mes.upper()]).zfill(2)
+    num_ano = int(ano)
+    colunas = ['FGTS', 'FGTS APRENDIZES', 'GPS']
+
+    lojas_ignoradas = [99, 101, 102, '99', '101', '102','adm','ADM']
+
+    with pd.ExcelFile(caminho) as xls:
+        for aba in xls.sheet_names:
+            alvo = f"{num_mes}-{num_ano}"
+
+            if aba.strip() == alvo:
+                df = pd.read_excel(xls, sheet_name=aba)
+
+                
+                df.columns = df.columns.astype(str).str.strip().str.upper()
+                # Coluna de loja é sempre a primeira (índice 0)
+                coluna_loja = df.columns[1]
+
+
+                # Normaliza "LOJA 01" → 1, "ADM" → "ADM"
+                df[coluna_loja] = df[coluna_loja].apply(_tratar_loja_almoxarifado)
+                df[coluna_loja] = _normalizar_coluna_loja(df[coluna_loja])
+
+                df = df[~df[coluna_loja].isin(lojas_ignoradas)]
+                # Remove linhas sem loja válida (totais, cabeçalhos extras, etc.)
+                df = df[df[coluna_loja].notna()].copy()
+
+                valor_adm_imposto_fixo = 95.000
+
+                impostos_finais = {}
+                for col in colunas:
+                    if col in df.columns:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+                        impostos_finais[col] = dict(zip(df[coluna_loja], df[col]))
+                    else:
+                        print(f"[AVISO] Coluna '{col}' não encontrada.")
+
+                impostos_finais['TOTAL'] = {
+                    k: sum(v.values()) for k, v in impostos_finais.items()
+                }
+
+            
+                return impostos_finais
+
+    print(f"[AVISO] Aba '{num_mes}-{num_ano}' não encontrada.")
+    return {}
 # ==============================================================================
 # AGRUPAMENTOS
 # ==============================================================================
@@ -414,17 +490,17 @@ def _tratar_loja_almoxarifado(val):
 
 
 
-
-def group_SUM_values(planilha_custo, planilha_rescisoes, planilha_VT, df_ferias, df_uniforme, df_materiais):
+def group_SUM_values(planilha_custo, planilha_rescisoes, planilha_VT, df_ferias, df_uniforme, df_materiais, CAMINHO_PLANILHA_IMPOSTO):
     custos   = get_dados_planilha_custos(planilha_custo)
     mes, ano = custos['mes'], custos['ano']
 
     rescisao = get_dados_planilha_rescisao(planilha_rescisoes, mes, ano)
     vt       = get_dados_planilha_VT(planilha_VT, mes, ano)
     ferias   = get_dados_planilha_ferias(df_ferias, mes, ano)
-
     uniformes = get_dados_gastos_almoxarifado(df_uniforme, mes, ano, 'valor_uniforme')
     materiais = get_dados_gastos_almoxarifado(df_materiais, mes, ano, 'valor_materiais')
+
+    impostos = get_dados_planilha_imposto(CAMINHO_PLANILHA_IMPOSTO, mes, ano)
 
     valores = {}
     valores.update(custos)
@@ -433,18 +509,22 @@ def group_SUM_values(planilha_custo, planilha_rescisoes, planilha_VT, df_ferias,
     valores.update(ferias)
     valores.update(uniformes)
     valores.update(materiais)
+    valores.update(impostos['TOTAL'])
 
     return valores
 
 
-def group_LOJAS_values(planilha_custo, planilha_rescisoes, planilha_VT, df_ferias, df_uniforme, df_materiais, mes, ano):
+def group_LOJAS_values(planilha_custo, planilha_rescisoes, planilha_VT, df_ferias, df_uniforme, df_materiais, CAMINHO_PLANILHA_IMPOSTO, mes, ano):
+
     custos    = get_dados_planilha_custos_por_loja(planilha_custo)
     rescisao  = get_dados_planilha_rescisao_por_loja(planilha_rescisoes, mes, ano)
     vt        = get_dados_planilha_VT_por_loja(planilha_VT, mes, ano)
     ferias    = get_dados_planilha_ferias_por_loja(df_ferias, mes, ano)
     uniformes = get_dados_gastos_almoxarifado_por_loja(df_uniforme, mes, ano, 'valor_uniforme')
     materiais = get_dados_gastos_almoxarifado_por_loja(df_materiais, mes, ano, 'valor_materiais')
-    
+    impostos = get_dados_planilha_imposto(CAMINHO_PLANILHA_IMPOSTO, mes, ano)
+
+
     for df in [custos, rescisao, vt, ferias, uniformes, materiais]:
         col = 'RATEIO' if 'RATEIO' in df.columns else 'LOJA'
         if col in df.columns and not df.empty:
@@ -474,6 +554,17 @@ def group_LOJAS_values(planilha_custo, planilha_rescisoes, planilha_VT, df_feria
     if 'valor_materiais' not in df.columns:
         df['valor_materiais'] = 0.0
 
-    df.fillna(0, inplace=True)
+    for imposto, valores_lojas in impostos.items():
+        if imposto != 'TOTAL':
+            df[imposto] = df['RATEIO'].map(valores_lojas)
+
+    
+
+    colunas_impostos = [k for k in impostos.keys() if k != 'TOTAL']
+    df[colunas_impostos] = df[colunas_impostos].fillna(0)
+
+
+    df.fillna(0.0, inplace=True)
+    df.set_index('RATEIO', inplace=True)
 
     return df
