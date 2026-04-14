@@ -4,10 +4,9 @@ from services.despesas.services.dashboard_despesas import tela_dashboard_despesa
 
 def main():
     root = tk.Tk()
-    root.title("AutoPanel — Gerenciador de Automação")
+    root.title("AutoMaker — Gerenciador de Automação")
     root.configure(bg="#0A0A0F")
-    #interface_master.tela_menu_principal(root)
-    tela_dashboard_despesas(root)
+    interface_master.tela_menu_principal(root)
     root.mainloop()
 
 if __name__ == "__main__":

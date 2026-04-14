@@ -21,7 +21,7 @@ def tela_menu_principal(root):
     sidebar.pack_propagate(False)
 
     tk.Label(sidebar, text="⬡", font=("Segoe UI", 28), bg=ui_theme.SURFACE, fg=ui_theme.ACCENT).pack(pady=(32, 4))
-    tk.Label(sidebar, text="AutoPanel", font=("Segoe UI", 13, "bold"), bg=ui_theme.SURFACE, fg=ui_theme.TEXT).pack()
+    tk.Label(sidebar, text="AutoMaker", font=("Segoe UI", 13, "bold"), bg=ui_theme.SURFACE, fg=ui_theme.TEXT).pack()
     tk.Label(sidebar, text="Gerenciador de Automação", font=ui_theme.FONT_SMALL, bg=ui_theme.SURFACE, fg=ui_theme.TEXT_SUB).pack(pady=(2, 24))
 
     ui_theme.divider(sidebar)

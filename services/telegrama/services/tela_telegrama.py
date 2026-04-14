@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from services.ui_theme import (
     ACCENT2, ACCENT, BG, BORDER, FONT_BODY, FONT_HEAD, FONT_MONO,
@@ -78,13 +81,13 @@ def _campo(parent, label, cor, placeholder=""):
 def tela_telegrama(root):
     COR = ACCENT
 
-    def corpo(root, _, cor):
+    def corpo(root, content, cor):
         # Container scrollável criado aqui dentro, usando o root correto
-        content_scroll = criar_container_scrollable(root)
+        content_scroll = criar_container_scrollable(content)
 
         # ── Card 1: Dados do destinatário ─────────────────────────────────────
         card_dest = tk.Frame(content_scroll, bg=SURFACE, padx=24, pady=18)
-        card_dest.pack(fill="x", pady=(0, 10), anchor="n")
+        card_dest.pack(fill="x", pady=(10, 10), anchor="n")
 
         tk.Label(card_dest, text="Dados do Destinatário", font=FONT_HEAD, bg=SURFACE, fg=TEXT).pack(anchor="w")
         tk.Label(card_dest, text="Preencha os campos para montar o telegrama",
