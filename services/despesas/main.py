@@ -31,9 +31,9 @@ def iniciar_processamento(caminho_excel: str):
         
         mes = dados_totais['mes']
         ano = dados_totais['ano']
-        for cat in ['FGTS', 'FGTS APRENDIZES', 'GPS']:
-            if cat not in dados_totais:
-                dados_totais[cat] = {}
+        for i in ['FGTS', 'FGTS APRENDIZES', 'GPS']:
+            if i not in dados_totais:
+                dados_totais[i] = {}
 
 
         reporter.gerar_relatorio(dados_totais, mes, ano, aba_nome="TOTAL GERAL")
@@ -71,4 +71,5 @@ def iniciar_processamento(caminho_excel: str):
 
 
 if __name__ == "__main__":
-    iniciar_processamento(r'G:\Backup\2025\Jan2025\Projeto nova Planilha de custo -- versão 2.0.xlsx')
+    iniciar_processamento()
+        #r'G:\Backup\2025\Jan2025\Projeto nova Planilha de custo -- versão 2.0.xlsx'

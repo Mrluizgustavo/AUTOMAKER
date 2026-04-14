@@ -4,6 +4,7 @@ import sys
 import os
 
 from services.despesas.services.dashboard_despesas import tela_dashboard_despesas, tela_excel_despesa
+from services.telegrama.services.tela_telegrama import tela_telegrama
 
 from services import ui_theme
 
@@ -60,7 +61,8 @@ def tela_menu_principal(root):
     
     automacoes = [
         ("📊", "Relatório Despesas",  "Simplificação e montagem de relatório",ui_theme.ACCENT, tela_excel_despesa),
-        ("📈", "Dashboard Despesas",  "Visualize KPIs e métricas cruzadas\ndo relatório de despesas", "#0891B2", tela_dashboard_despesas)
+        ("📈", "Dashboard Despesas",  "Visualize KPIs e métricas cruzadas\ndo relatório de despesas", "#0891B2", tela_dashboard_despesas),
+        ("📃", "Telegrama CORREIOS",  "Montagem de telegramas", ui_theme.ACCENT, tela_telegrama),
         ]
 
     grid = tk.Frame(main, bg=ui_theme.BG)

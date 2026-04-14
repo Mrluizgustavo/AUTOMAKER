@@ -766,8 +766,6 @@ def _janela_dashboard(root, dados, aba_nome, caminho_arq, cor):
              text=f"Fonte: {os.path.basename(caminho_arq)}  •  Aba: {aba_nome}  •  {len(meses)} período(s)",
              font=FONT_SMALL, bg=BG, fg=TEXT_SUB).pack(side="left")
 
-
-
     
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1051,23 +1049,7 @@ def tela_excel_despesa(root):
 
         pill_button(row, "Navegar", selecionar, color=cor, hover=ACCENT2).pack(side="right")
 
-        # Opções
-        card2 = tk.Frame(content, bg=SURFACE, padx=24, pady=16)
-        card2.pack(fill="x", pady=(0, 14))
-        tk.Label(card2, text="Opções de Processamento", font=FONT_HEAD, bg=SURFACE, fg=TEXT).pack(anchor="w", pady=(0, 10))
-
-        opts = [("Remover duplicatas", True), ("Formatar cabeçalhos", True), ("Exportar relatório", False)]
-        vars_ = []
-        for label, default in opts:
-            v = tk.BooleanVar(value=default)
-            vars_.append(v)
-            row_opt = tk.Frame(card2, bg=SURFACE)
-            row_opt.pack(fill="x", pady=2)
-            tk.Checkbutton(row_opt, variable=v, bg=SURFACE, fg=TEXT,
-                           selectcolor=cor, activebackground=SURFACE,
-                           font=FONT_BODY).pack(side="left")
-            tk.Label(row_opt, text=label, bg=SURFACE, fg=TEXT, font=FONT_BODY).pack(side="left")
-
+    
         def executar():
             arq = caminho.get()
             if not arq or "Nenhum" in arq:
