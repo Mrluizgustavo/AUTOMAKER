@@ -1,5 +1,5 @@
 import os
-from services.reporter import gerar_telegrama
+from services.telegrama.services.reporter import gerar_telegrama
 from textwrap import dedent
 import os
 import sys

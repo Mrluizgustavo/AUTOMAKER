@@ -218,7 +218,7 @@ def tela_telegrama(root):
                 return
 
             try:
-                import services.reporter as rp
+                import services.telegrama.services.reporter as rp
 
                 rp.DADOS_POSICOES["destinatario"]["NOME_DESTINATARIO"]     = (40, 625, nome.upper())
                 rp.DADOS_POSICOES["destinatario"]["ENDERECO_DESTINATARIO"] = (40, 602, endereco.upper())
