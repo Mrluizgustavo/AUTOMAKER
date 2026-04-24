@@ -234,6 +234,19 @@ def preencher_dados(ws, dados,  col):
     ws[f'{col}22'] = locale.currency(dados.get('valor_ferias', 0.0), grouping=True)
     ws[f'{col}24'] = locale.currency(dados.get('valor_uniforme', 0.0), grouping=True)
     ws[f'{col}25'] = locale.currency(dados.get('valor_materiais', 0.0), grouping=True)
+
+    total_despesas = locale.currency (salario + dados.get('rescisao_total', 0.0) + 
+                                      (dados.get('valor_vt', 0.0) - dados.get('vt_desc_func', 0.0)) + 
+                                      dados.get('refeicoes_desc_func', 0.0) +
+                                      dados.get('valor_horas_extras_60', 0.0) + dados.get('valor_horas_extras_100_com_dsr', 0.0) + 
+                                      dados.get('valor_convenio_planilha_custos', 0.0) +
+                                      dados.get('convenio_ferias', 0.0) +
+                                      dados.get('valor_ferias', 0.0) +
+                                      dados.get('valor_uniforme', 0.0) + dados.get('valor_materiais', 0.0), grouping=True)
+
+
+    ws[f'{col}26'] = total_despesas
+
 def aplicar_estilo_coluna_mes(ws, col):
 
     col_prox = col + 1

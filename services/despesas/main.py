@@ -45,7 +45,8 @@ def iniciar_processamento(caminho_excel: str):
         loja_alvo = 1 if 1 in dados_loja.index else '1'
 
         if loja_alvo in dados_loja.index:
-            # Subtraímos os 95.000 do valor que já existe lá
+            # Subtraímos os 95.000 do valor fixo do imposto adm
+        
             valor_atual = dados_loja.at[loja_alvo, 'FGTS']
             dados_loja.at[loja_alvo, 'FGTS'] = valor_atual - 95000
 
