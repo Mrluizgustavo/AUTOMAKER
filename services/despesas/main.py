@@ -9,9 +9,9 @@ from services.despesas.services import reporter
 #from services import processador
 #from services import reporter
 
-CAMINHO_RESCISAO = r'G:\Despesas\Rescisão\Rescisões.xlsx'
-CAMINHO_VT       = r'G:\Despesas\Vale Transporte\DESPESAS VT.xlsx'
-CAMINHO_FERIAS   = r'G:\Despesas\Mercado - Planilha de férias (ATUAL).xlsx'
+CAMINHO_RESCISAO = r'G:\Despesas\Rescisão\Março.xlsx'
+CAMINHO_VT       = r'G:\Despesas\Vale Transporte\DESPESAS.xlsx'
+CAMINHO_FERIAS   = r'G:\Férias\Férias\Mercado - Planilha de férias (ATUAL).xlsx'
 CAMINHO_ALMOXARIFADO = r'G:\GASTOS\GASTOS.xlsx'
 CAMINHO_PLANILHA_IMPOSTO = r'G:\PILOTO - CONTROLE DE TRIBUTOS.xlsx'
 

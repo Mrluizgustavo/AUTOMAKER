@@ -179,13 +179,73 @@ def _tratar_adms_ferias(df, nomes_adm):
 # CUSTOS
 # ==============================================================================
 
+def _extrair_mes_ano_periodo(serie):
+    """
+    Extrai (mes_num: int, ano: str) da coluna PERIODO.
+    Aceita: 'MM/AAAA', datetime/Timestamp, 'AAAA-MM-DD', 'DD/MM/AAAA', etc.
+    Usa a moda (valor mais frequente) para ignorar linhas de lixo.
+    """
+    import re as _re
+
+    pares = []
+    for val in serie.dropna():
+        # Caso 1: já é um objeto datetime/Timestamp
+        if hasattr(val, 'month') and hasattr(val, 'year'):
+            pares.append((int(val.month), str(val.year)))
+            continue
+
+        s = str(val).strip()
+
+        # Caso 2: formato M/AAAA ou MM/AAAA  ex: "3/2026" ou "03/2025"
+        m = _re.match(r'^(\d{1,2})/(\d{4})\s*$', s)
+        if m:
+            pares.append((int(m.group(1)), m.group(2)))
+            continue
+
+        # Caso 3: formato DD/MM/AAAA  ex: "15/03/2025"
+        m = _re.match(r'^\d{1,2}/(\d{1,2})/(\d{4})', s)
+        if m:
+            pares.append((int(m.group(1)), m.group(2)))
+            continue
+
+        # Caso 4: formato AAAA-MM-DD  ex: "2025-03-01"
+        m = _re.match(r'^(\d{4})-(\d{2})-\d{2}', s)
+        if m:
+            pares.append((int(m.group(2)), m.group(1)))
+            continue
+
+        # Caso 5: tenta converter com pandas como último recurso
+        try:
+            dt = pd.to_datetime(s, dayfirst=True, errors='raise')
+            pares.append((int(dt.month), str(dt.year)))
+        except Exception:
+            pass  # ignora valores que não são datas
+
+    if not pares:
+        raise ValueError(
+            f"Nenhum valor de data válido encontrado na coluna PERIODO.\n"
+            f"Valores encontrados: {serie.dropna().unique().tolist()}"
+        )
+
+    # Usa a moda do par (mes, ano)
+    from collections import Counter
+    (mes_num, ano), _ = Counter(pares).most_common(1)[0]
+    return mes_num, ano
+
+
 def get_dados_planilha_custos(df_custos):
     total_bruto  = df_custos['BRUTO'].sum()
     total_faltas = df_custos['FALTA'].sum()
 
-    data = df_custos['PERIODO'].mode().iloc[0]
-    mes_num, ano = data.split("/")
-    mes_num = int(mes_num)
+    # Diagnóstico: mostra colunas e primeiros valores para depuração
+    print(f"[DEBUG] Colunas encontradas: {df_custos.columns.tolist()}")
+    if 'PERIODO' in df_custos.columns:
+        print(f"[DEBUG] Primeiros valores de PERIODO: {df_custos['PERIODO'].head(10).tolist()}")
+    else:
+        print(f"[DEBUG] Coluna PERIODO não encontrada! Colunas disponíveis: {df_custos.columns.tolist()}")
+
+    # Tenta extrair mês e ano da coluna PERIODO com múltiplas estratégias
+    mes_num, ano = _extrair_mes_ano_periodo(df_custos['PERIODO'])
     mes = MESES_PTBR[mes_num]
 
     valor_horas_extras_60      = df_custos['H. EXTRA 60%'].sum()
