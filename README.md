@@ -6,4 +6,4 @@ Para uma visualização detalhada das funcionalidades, estrutura do projeto e gu
 
 ---
 ## Resumo do Projeto
-O **AutoMaker** é uma central de automação desenvolvida em Python que utiliza `tkinter` para a interface gráfica. O sistema foca no processamento de despesas e geração de documentos legais (Telegramas).
+O **AutoMaker** é uma central de automação desenvolvida em Python que utiliza `tkinter` para a interface gráfica. O sistema foca no processamento de despesas e geração de documentos legais (Telegramas), atualmente em fase de construção, entretanto contará com automaçãoes da API da CONTROL ID para coleta automática de marcações de ponto, e importação automática de usuários para os REPs. 
