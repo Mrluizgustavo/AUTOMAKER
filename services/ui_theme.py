@@ -7,6 +7,7 @@ SURFACE2   = "#1C1C28"   # Hover / campo
 ACCENT     = "#7C3AED"   # Violeta primário
 ACCENT2    = "#A855F7"   # Violeta claro (hover)
 ACCENT3    = "#4F46E5"   # Índigo (detalhe)
+ACCENT4    = "#0891B2"   # Azul Ciano Primário
 TEXT       = "#F1F0FF"   # Branco levemente violeta
 TEXT_SUB   = "#8884A8"   # Subtítulo / placeholder
 BORDER     = "#2A2A3E"   # Borda sutil
@@ -126,3 +127,7 @@ def _base_tela(root, titulo, icon, cor, conteudo_fn):
     conteudo_fn(root, content, cor)
 
     status_bar(root)
+
+
+
+       
