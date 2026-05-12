@@ -1,9 +1,9 @@
 import tkinter as tk
-from services import interface_master
+from services import main_interface
 from services.despesas.services.dashboard_despesas import tela_dashboard_despesas
 from services.ui_theme import BG, SURFACE, ACCENT, FONT_SMALL, TEXT, TEXT_SUB, FONT_BODY, divider
 
-from services.interface_master import tela_menu_principal
+from services.main_interface import tela_menu_principal
 
 def main():
 
@@ -61,7 +61,7 @@ def main():
 
 
     construir_sidebar(frame_sidebar, frame_main)
-    rotear_tela(frame_main,tela_menu_principal)        
+    rotear_tela(frame_main,lambda p: tela_menu_principal(p,rotear_tela))        
     
     root.mainloop()
 

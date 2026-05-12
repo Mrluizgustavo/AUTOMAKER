@@ -4,12 +4,12 @@ import sys
 import os
 
 from services.despesas.services.dashboard_despesas import tela_dashboard_despesas, tela_excel_despesa
-from services.telegrama.services.tela_telegrama import tela_telegrama
+from services.telegrama.main_telegrama import tela_telegrama
 
 from services.ui_theme import BG, FONT_TITLE, TEXT, ACCENT3, ACCENT4, FONT_BODY, TEXT_SUB, ACCENT, SURFACE, FONT_HEAD, FONT_SMALL, SURFACE2, FONT_BTN, _set_bg_recursive, badge, status_bar
 
 # ── Tela: Menu Principal ─────────────────────────────────────────────────────
-def tela_menu_principal(parent_frame):
+def tela_menu_principal(parent_frame, roteador):
 
     # Cabeçalho
     header = tk.Frame(parent_frame, bg=BG)
@@ -61,7 +61,6 @@ def tela_menu_principal(parent_frame):
         tk.Label(inner, text=desc, font=FONT_SMALL, bg=SURFACE, fg=TEXT_SUB,
                  justify="left", anchor="w").pack(fill="x")
 
-        fn = tela_fn
         
         btn = tk.Button(
             inner, text="Abrir  →",
@@ -69,8 +68,9 @@ def tela_menu_principal(parent_frame):
             activebackground=SURFACE2, activeforeground=TEXT,
             relief="flat", cursor="hand2",
             font=FONT_BTN, padx=14, pady=6,
-            command=lambda r=parent_frame, f=fn: f(r)
+            command=lambda f=tela_fn: roteador(parent_frame,f)
         )
+
         btn.pack(anchor="e", pady=(12, 0))
 
         def _on_enter(e, c=card, b=accent_bar, clr=cor):

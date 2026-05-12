@@ -98,10 +98,9 @@ def _base_tela(root, titulo, icon, cor, conteudo_fn):
     Chama conteudo_fn(root, content_frame, cor) para preencher o miolo.
     """
     # importação local para evitar ciclo
-    from services.interface_master import tela_menu_principal
+    from services.main_interface import tela_menu_principal
 
-    limpar_janela(root)
-    root.geometry("960x660")
+
     root.configure(bg=BG)
 
     header_bar = tk.Frame(root, bg=cor, height=5)
