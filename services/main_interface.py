@@ -28,9 +28,9 @@ def tela_menu_principal(parent_frame, roteador):
     # ── Grid de cards ──
     
     automacoes = [
-        ("📊", "Relatório Despesas",  "Simplificação e montagem de relatório",ACCENT, tela_excel_despesa),
-        ("📈", "Dashboard Despesas",  "Visualize KPIs e métricas cruzadas\ndo relatório de despesas", ACCENT4, tela_dashboard_despesas),
-        ("📃", "Telegrama CORREIOS",  "Montagem de telegramas", ACCENT, tela_telegrama),
+        ("📊", "Relatório Despesas",  "Simplificação e montagem de relatório",ACCENT, lambda p: tela_excel_despesa(p, roteador)),
+        ("📈", "Dashboard Despesas",  "Visualize KPIs e métricas cruzadas\ndo relatório de despesas", ACCENT4, lambda p: tela_dashboard_despesas(p, roteador)),
+        ("📃", "Telegrama CORREIOS",  "Montagem de telegramas", ACCENT, lambda p: tela_telegrama(p, roteador)),
         ]
 
     grid = tk.Frame(parent_frame, bg=BG)

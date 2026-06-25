@@ -23,7 +23,7 @@ def main():
 
 
     nav_items = [
-            ("🗂  Automações",    True, tela_menu_principal),
+            ("🗂  Automações",    True,  lambda p: tela_menu_principal(p, rotear_tela)),
             ("📊  Dashboards",    False, None),
             ("📋  Outros",        False, None),
             ("⚙  Configurações",  False, None),
@@ -44,10 +44,13 @@ def main():
             t_color = TEXT if active else TEXT_SUB
             item = tk.Frame(frame_sidebar, bg=f_color, cursor="hand2")
             item.pack(fill="x", padx=12, pady=2)
-            tk.Label(item, text=label, bg=f_color, fg=t_color,
-                    font=FONT_BODY, padx=14, pady=9, anchor="w").pack(fill="x")
+            lbl = tk.Label(item, text=label, bg=f_color, fg=t_color,
+                    font=FONT_BODY, padx=14, pady=9, anchor="w")
+            lbl.pack(fill="x")
             
-            item.bind("<Button-1>", lambda e, destino = tela_fn: rotear_tela(frame_principal_atual, destino))
+            handler = lambda e, destino=tela_fn: rotear_tela(frame_principal_atual, destino)
+            item.bind("<Button-1>", handler)
+            lbl.bind("<Button-1>", handler)
         
 
 

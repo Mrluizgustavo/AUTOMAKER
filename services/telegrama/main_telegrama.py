@@ -81,7 +81,7 @@ def _campo(parent, label, cor, placeholder=""):
     return var, entry
 
 
-def tela_telegrama(parent_frame):
+def tela_telegrama(parent_frame, roteador=None):
     COR = ACCENT
 
     def corpo(parent_frame, content, cor):
@@ -242,4 +242,4 @@ def tela_telegrama(parent_frame):
             color=cor, hover=ACCENT2,
         ).pack(fill="x", pady=(4, 0), ipady=4)
 
-    _base_tela(parent_frame, "Monte seu Telegrama", "📃", COR, corpo)
+    _base_tela(parent_frame, "Monte seu Telegrama", "📃", COR, corpo, roteador)

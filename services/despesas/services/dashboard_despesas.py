@@ -15,7 +15,7 @@ WARNING = "#F59E0B"
 # ══════════════════════════════════════════════════════════════════════════════
 # TELA DE ENTRADA
 # ══════════════════════════════════════════════════════════════════════════════
-def tela_dashboard_despesas(root):
+def tela_dashboard_despesas(root, roteador=None):
     COR_DASH = "#0891B2"
 
     def corpo(root, content, cor):
@@ -123,7 +123,7 @@ def tela_dashboard_despesas(root):
         pill_button(btn_row, "🏪  Comparativo por Loja", abrir_comparativo,
                     color="#065F46", hover="#047857").pack(side="left", fill="x", expand=True, ipady=4)
 
-    _base_tela(root, "Dashboard Despesas", "📈", COR_DASH, corpo)
+    _base_tela(root, "Dashboard Despesas", "📈", COR_DASH, corpo, roteador)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1018,7 +1018,7 @@ def _janela_comparativo_lojas(root, caminho_arq, abas, cor):
     
 
 
-def tela_excel_despesa(root):
+def tela_excel_despesa(root, roteador=None):
     def corpo(root, content, cor):
         caminho = tk.StringVar(value="")
 
@@ -1068,4 +1068,4 @@ def tela_excel_despesa(root):
 
         pill_button(content, "▶  Executar Automação", executar, color=cor, hover=ACCENT2).pack(fill="x", pady=4, ipady=4)
 
-    _base_tela(root, "Processar Excel", "📊", ACCENT, corpo)
+    _base_tela(root, "Processar Excel", "📊", ACCENT, corpo, roteador)

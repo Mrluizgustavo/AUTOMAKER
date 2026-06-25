@@ -91,15 +91,13 @@ def _set_bg_recursive(widget, color):
         _set_bg_recursive(child, color)
 
 # ── Layout base para telas de automação ──────────────────────────────────────
-def _base_tela(root, titulo, icon, cor, conteudo_fn):
+def _base_tela(root, titulo, icon, cor, conteudo_fn, roteador=None):
     """
     Monta o shell padrão de uma tela de automação:
     faixa colorida + cabeçalho + botão voltar + área de conteúdo + status bar.
     Chama conteudo_fn(root, content_frame, cor) para preencher o miolo.
     """
-    # importação local para evitar ciclo
     from services.main_interface import tela_menu_principal
-
 
     root.configure(bg=BG)
 
@@ -116,7 +114,11 @@ def _base_tela(root, titulo, icon, cor, conteudo_fn):
     tk.Label(title_col, text="Configure e execute o módulo abaixo",
              font=FONT_SMALL, bg=BG, fg=TEXT_SUB).pack(anchor="w")
 
-    ghost_button(top, "Voltar ao menu", lambda: tela_menu_principal(root)).pack(side="right", anchor="center")
+    if roteador:
+        voltar_cmd = lambda: roteador(root, lambda p: tela_menu_principal(p, roteador))
+    else:
+        voltar_cmd = lambda: None
+    ghost_button(top, "Voltar ao menu", voltar_cmd).pack(side="right", anchor="center")
 
     divider(root, pady=14)
 
