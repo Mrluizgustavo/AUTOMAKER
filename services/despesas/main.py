@@ -27,19 +27,18 @@ def iniciar_processamento(caminho_excel: str):
         df_ferias    = processador.buscar_dados_ferias(CAMINHO_FERIAS, caminho_custos=caminho_excel) 
         df_uniforme  = processador.buscar_dados(CAMINHO_ALMOXARIFADO, aba="Envio uniforme", header=1)
         df_materiais = processador.buscar_dados(CAMINHO_ALMOXARIFADO, aba="Envio de materiais", header=1)
-        dados_totais = processador.group_SUM_values(df_custos, df_rescisao, df_VT, df_ferias, df_uniforme, df_materiais, CAMINHO_PLANILHA_IMPOSTO)
-        
+        dados_loja, dados_totais = processador.group_values(
+            df_custos, df_rescisao, df_VT, df_ferias,
+            df_uniforme, df_materiais, CAMINHO_PLANILHA_IMPOSTO
+        )
+
         mes = dados_totais['mes']
         ano = dados_totais['ano']
         for i in ['FGTS', 'FGTS APRENDIZES', 'GPS']:
             if i not in dados_totais:
                 dados_totais[i] = {}
 
-
         reporter.gerar_relatorio(dados_totais, mes, ano, aba_nome="TOTAL GERAL")
-
-        dados_loja = processador.group_LOJAS_values(df_custos, df_rescisao, df_VT, df_ferias,df_uniforme, df_materiais, CAMINHO_PLANILHA_IMPOSTO, mes, ano)
-
 
         #RETIRA O VALOR DO ADM DA LOJA 01
         loja_alvo = 1 if 1 in dados_loja.index else '1'
