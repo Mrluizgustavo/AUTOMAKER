@@ -5,6 +5,7 @@ import os
 
 from services.despesas.services.dashboard_despesas import tela_dashboard_despesas, tela_excel_despesa
 from services.telegrama.main_telegrama import tela_telegrama
+from services.contratos.main_contratos import tela_contratos
 
 from services.ui_theme import BG, FONT_TITLE, TEXT, ACCENT3, ACCENT4, FONT_BODY, TEXT_SUB, ACCENT, SURFACE, FONT_HEAD, FONT_SMALL, SURFACE2, FONT_BTN, _set_bg_recursive, badge, status_bar
 
@@ -31,6 +32,7 @@ def tela_menu_principal(parent_frame, roteador):
         ("📊", "Relatório Despesas",  "Simplificação e montagem de relatório",ACCENT, lambda p: tela_excel_despesa(p, roteador)),
         ("📈", "Dashboard Despesas",  "Visualize KPIs e métricas cruzadas\ndo relatório de despesas", ACCENT4, lambda p: tela_dashboard_despesas(p, roteador)),
         ("📃", "Telegrama CORREIOS",  "Montagem de telegramas", ACCENT, lambda p: tela_telegrama(p, roteador)),
+        ("📄", "Contratos",  "Processamento de contratos em PDF", ACCENT3, lambda p: tela_contratos(p, roteador)),
         ]
 
     grid = tk.Frame(parent_frame, bg=BG)

@@ -130,5 +130,89 @@ def _base_tela(root, titulo, icon, cor, conteudo_fn, roteador=None):
     status_bar(root)
 
 
+# ── Overlay de loading com blur ───────────────────────────────────────────────
+def executar_com_loading(container, tarefa, ao_concluir=None, ao_erro=None,
+                         texto="Processando..."):
+    """
+    Cobre `container` com um overlay desfocado (blur) + ícone de loading animado
+    enquanto `tarefa()` roda numa thread. Ao terminar, remove o overlay e chama
+    `ao_concluir(resultado)` ou `ao_erro(excecao)` na thread principal.
 
-       
+    - container : frame a ser coberto (ex.: a área do módulo, sem a sidebar).
+    - tarefa    : função sem argumentos, executada em background; seu retorno
+                  é repassado a ao_concluir.
+    """
+    import threading
+
+    container.update_idletasks()
+    w = max(container.winfo_width(), 1)
+    h = max(container.winfo_height(), 1)
+
+    # 1. Captura a área atual e aplica blur (antes de sobrepor o overlay)
+    foto = None
+    try:
+        from PIL import ImageGrab, ImageFilter, ImageEnhance, ImageTk
+        x = container.winfo_rootx()
+        y = container.winfo_rooty()
+        img = ImageGrab.grab(bbox=(x, y, x + w, y + h)).resize((w, h))
+        img = img.filter(ImageFilter.GaussianBlur(9))
+        img = ImageEnhance.Brightness(img).enhance(0.5)   # escurece o fundo
+        foto = ImageTk.PhotoImage(img)
+    except Exception:
+        foto = None  # fallback: overlay sólido
+
+    # 2. Overlay cobrindo todo o container
+    overlay = tk.Frame(container, bg=BG)
+    overlay.place(x=0, y=0, relwidth=1, relheight=1)
+
+    if foto is not None:
+        bg_label = tk.Label(overlay, image=foto, bd=0, bg=BG)
+        bg_label.image = foto  # mantém referência viva
+        bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # 3. Card central com spinner animado
+    card = tk.Frame(overlay, bg=SURFACE, padx=44, pady=32,
+                    highlightthickness=1, highlightbackground=BORDER)
+    card.place(relx=0.5, rely=0.5, anchor="center")
+
+    quadros = ["◐", "◓", "◑", "◒"]
+    estado = {"i": 0, "rodando": True}
+    spinner = tk.Label(card, text=quadros[0], font=("Segoe UI", 38, "bold"),
+                       bg=SURFACE, fg=ACCENT2)
+    spinner.pack()
+    tk.Label(card, text=texto, font=FONT_BODY, bg=SURFACE, fg=TEXT).pack(pady=(12, 0))
+
+    def animar():
+        if not estado["rodando"]:
+            return
+        estado["i"] = (estado["i"] + 1) % len(quadros)
+        spinner.config(text=quadros[estado["i"]])
+        overlay.after(110, animar)
+
+    animar()
+
+    # 4. Executa a tarefa em background e monitora a conclusão
+    resultado = {}
+
+    def worker():
+        try:
+            resultado["ok"] = tarefa()
+        except Exception as e:
+            resultado["erro"] = e
+
+    thread = threading.Thread(target=worker, daemon=True)
+    thread.start()
+
+    def checar():
+        if thread.is_alive():
+            overlay.after(80, checar)
+            return
+        estado["rodando"] = False
+        overlay.destroy()
+        if "erro" in resultado:
+            if ao_erro:
+                ao_erro(resultado["erro"])
+        elif ao_concluir:
+            ao_concluir(resultado.get("ok"))
+
+    overlay.after(80, checar)
